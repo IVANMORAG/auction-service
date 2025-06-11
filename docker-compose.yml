@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  auction-service:
+    build: .
+    ports:
+      - "3002:3002"
+    environment:
+      - JWT_SECRET=un_secreto_muy_fuerte_y_unico  # 🔥 Definido aquí
+      - NODE_ENV=development # Cambiado a development para más logs
+    env_file:
+      - .env
+    depends_on:
+      auction-mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  auction-mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - auction_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
+volumes:
+  auction_data:
